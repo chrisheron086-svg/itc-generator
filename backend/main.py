@@ -6,8 +6,13 @@ from datetime import date
 from pathlib import Path
 import tempfile
 import zipfile
+import logging
+import traceback
 
 from generators import circuit_breaker, generic
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = FastAPI(title="ITC Generator API")
 
@@ -80,12 +85,14 @@ def generate_multi(req: MultiITCRequest):
 
     try:
         for item in req.equipment_items:
+            logger.info(f"Processing equipment type: {item.equipment_type}")
             if item.equipment_type not in EQUIPMENT_TYPES:
                 raise HTTPException(status_code=400, detail=f"Unknown equipment type: {item.equipment_type}")
 
             item_data = {**data, "bay_name": item.bay_name}
 
             for panel_num in item.panel_numbers:
+                logger.info(f"Generating ITC for panel: {panel_num}")
                 safe_name = panel_num.replace("+", "").replace("-", "_").replace("/", "_")
                 output_path = tmp_dir / f"{item.equipment_type}_{safe_name}.xlsx"
 
@@ -94,6 +101,7 @@ def generate_multi(req: MultiITCRequest):
                 else:
                     generic.generate(item.equipment_type, item_data, [panel_num], output_path)
 
+                logger.info(f"Successfully generated: {output_path}")
                 generated_files.append((panel_num, item.equipment_type, output_path))
 
         # Single file — return xlsx directly
@@ -112,7 +120,6 @@ def generate_multi(req: MultiITCRequest):
         with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
             for panel_num, eq_type, xlsx_path in generated_files:
                 safe_panel = panel_num.replace("+", "").replace("-", "_").replace("/", "_")
-                # Organise into subfolders by equipment type
                 folder = eq_type.replace("_", " ").title()
                 zf.write(xlsx_path, arcname=f"{folder}/{safe_panel}.xlsx")
 
@@ -126,4 +133,5 @@ def generate_multi(req: MultiITCRequest):
     except HTTPException:
         raise
     except Exception as e:
+        logger.error(f"Error generating ITC: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=str(e))
