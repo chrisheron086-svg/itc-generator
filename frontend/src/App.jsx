@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import styled, { keyframes } from "styled-components";
-import EquipmentSelect from "./components/EquipmentSelect";
 import ProjectDetails from "./components/ProjectDetails";
 import PersonnelDetails from "./components/PersonnelDetails";
+import EquipmentSelect from "./components/EquipmentSelect";
 import PanelNumbers from "./components/PanelNumbers";
 import ReviewGenerate from "./components/ReviewGenerate";
 
-const STEPS = ["Equipment", "Project", "Personnel", "Panels", "Generate"];
+const STEPS = ["Project", "Personnel", "Equipment", "Panels", "Generate"];
 
 const fadeIn = keyframes`from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); }`;
 
@@ -34,20 +34,20 @@ const Title = styled.h1`
   letter-spacing: -0.5px;
 `;
 
-const Subtitle = styled.p`
-  color: var(--text-muted);
-  margin-top: 8px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-`;
-
 const GoldLine = styled.div`
   width: 48px;
   height: 3px;
   background: #DFB200;
   margin: 10px auto 0;
+`;
+
+const Subtitle = styled.p`
+  color: var(--text-muted);
+  margin-top: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
 `;
 
 const StepBar = styled.div`
@@ -58,7 +58,7 @@ const StepBar = styled.div`
   border-radius: var(--radius);
   overflow: hidden;
   width: 100%;
-  max-width: 640px;
+  max-width: 700px;
   background: var(--surface);
 `;
 
@@ -85,19 +85,20 @@ const Card = styled.div`
   border-radius: var(--radius);
   padding: 36px;
   width: 100%;
-  max-width: 640px;
+  max-width: 700px;
   animation: ${fadeIn} 0.3s ease;
   box-shadow: 0 2px 12px rgba(0,0,0,0.06);
 `;
 
 const INITIAL_FORM = {
-  equipment_type: "",
+  // Project details — filled once
   cpp_project_name: "",
   cpp_job_no: "",
-  bay_name: "",
   client_project_title: "",
   client_project_number: "",
   site_location: "",
+  date: new Date().toISOString().split("T")[0],
+  // Personnel — filled once
   prepared_by_name: "",
   prepared_by_position: "",
   checked_by_name: "",
@@ -105,8 +106,9 @@ const INITIAL_FORM = {
   checked_by_signature: "",
   client_checked_by_name: "",
   client_checked_by_position: "",
-  date: new Date().toISOString().split("T")[0],
-  panel_numbers: [],
+  // Equipment — multiple types, each with their own panel numbers
+  // equipment_items: [{ equipment_type, bay_name, panel_numbers: [] }, ...]
+  equipment_items: [],
 };
 
 export default function App() {
@@ -119,9 +121,9 @@ export default function App() {
   const goTo = (i) => { if (i < step) setStep(i); };
 
   const stepComponents = [
-    <EquipmentSelect form={form} update={update} next={next} />,
-    <ProjectDetails form={form} update={update} next={next} back={back} />,
+    <ProjectDetails form={form} update={update} next={next} />,
     <PersonnelDetails form={form} update={update} next={next} back={back} />,
+    <EquipmentSelect form={form} update={update} next={next} back={back} />,
     <PanelNumbers form={form} update={update} next={next} back={back} />,
     <ReviewGenerate form={form} back={back} />,
   ];

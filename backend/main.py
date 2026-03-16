@@ -6,6 +6,7 @@ from datetime import date
 from pathlib import Path
 import tempfile
 import os
+import zipfile
 
 from generators import circuit_breaker, generic
 
@@ -32,12 +33,16 @@ EQUIPMENT_TYPES = [
 ]
 
 
-class ITCRequest(BaseModel):
+class EquipmentItem(BaseModel):
     equipment_type: str
+    bay_name: str
     panel_numbers: list[str]
+
+
+class MultiITCRequest(BaseModel):
+    equipment_items: list[EquipmentItem]
     cpp_project_name: str
     cpp_job_no: str
-    bay_name: str
     prepared_by_name: str
     prepared_by_position: str
     checked_by_name: str
@@ -61,33 +66,64 @@ def get_equipment_types():
     return {"equipment_types": EQUIPMENT_TYPES}
 
 
-@app.post("/generate")
-def generate_itc(req: ITCRequest):
-    if req.equipment_type not in EQUIPMENT_TYPES:
-        raise HTTPException(status_code=400, detail=f"Unknown equipment type: {req.equipment_type}")
-    if not req.panel_numbers:
-        raise HTTPException(status_code=400, detail="At least one panel number is required")
+@app.post("/generate-multi")
+def generate_multi(req: MultiITCRequest):
+    if not req.equipment_items:
+        raise HTTPException(status_code=400, detail="No equipment items provided")
 
     from datetime import datetime
     data = req.model_dump()
     data["date"] = datetime.combine(req.date, datetime.min.time())
 
-    with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as tmp:
-        output_path = Path(tmp.name)
+    tmp_dir = Path(tempfile.mkdtemp())
+    generated_files = []
 
     try:
-        if req.equipment_type == "circuit_breaker":
-            circuit_breaker.generate(data, req.panel_numbers, output_path)
-        else:
-            generic.generate(req.equipment_type, data, req.panel_numbers, output_path)
+        for item in req.equipment_items:
+            if item.equipment_type not in EQUIPMENT_TYPES:
+                raise HTTPException(status_code=400, detail=f"Unknown equipment type: {item.equipment_type}")
 
-        filename = f"{req.equipment_type}_ITCs.xlsx"
+            item_data = {**data, "bay_name": item.bay_name}
+
+            for panel_num in item.panel_numbers:
+                safe_name = panel_num.replace("+", "").replace("-", "_").replace("/", "_")
+                output_path = tmp_dir / f"{item.equipment_type}_{safe_name}.xlsx"
+
+                if item.equipment_type == "circuit_breaker":
+                    circuit_breaker.generate(item_data, [panel_num], output_path)
+                else:
+                    generic.generate(item.equipment_type, item_data, [panel_num], output_path)
+
+                generated_files.append((panel_num, item.equipment_type, output_path))
+
+        # Single file — return xlsx directly
+        if len(generated_files) == 1:
+            _, _, output_path = generated_files[0]
+            panel_num = generated_files[0][0]
+            safe_name = panel_num.replace("+", "").replace("-", "_").replace("/", "_")
+            return FileResponse(
+                path=str(output_path),
+                filename=f"{safe_name}.xlsx",
+                media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            )
+
+        # Multiple files — zip with equipment type subfolders
+        zip_path = tmp_dir / f"{req.cpp_project_name}_ITCs.zip"
+        with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
+            for panel_num, eq_type, xlsx_path in generated_files:
+                safe_panel = panel_num.replace("+", "").replace("-", "_").replace("/", "_")
+                # Organise into subfolders by equipment type
+                folder = eq_type.replace("_", " ").title()
+                zf.write(xlsx_path, arcname=f"{folder}/{safe_panel}.xlsx")
+
+        safe_project = req.cpp_project_name.replace(" ", "_")
         return FileResponse(
-            path=str(output_path),
-            filename=filename,
-            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            path=str(zip_path),
+            filename=f"{safe_project}_ITCs.zip",
+            media_type="application/zip",
         )
+
+    except HTTPException:
+        raise
     except Exception as e:
-        if output_path.exists():
-            os.unlink(output_path)
         raise HTTPException(status_code=500, detail=str(e))
