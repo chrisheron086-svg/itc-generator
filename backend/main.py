@@ -5,7 +5,6 @@ from pydantic import BaseModel
 from datetime import date
 from pathlib import Path
 import tempfile
-import os
 import zipfile
 
 from generators import circuit_breaker, generic

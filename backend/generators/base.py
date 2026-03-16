@@ -1,5 +1,4 @@
 import copy
-import openpyxl
 from openpyxl.worksheet.page import PageMargins
 from openpyxl.worksheet.properties import WorksheetProperties, PageSetupProperties
 
