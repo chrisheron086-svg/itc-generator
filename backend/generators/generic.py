@@ -14,7 +14,7 @@ TEMPLATES = {
     "net": Path(__file__).parent.parent / "templates" / "NET.xlsx",
     "power_transformer": Path(__file__).parent.parent / "templates" / "Power_Transformer.xlsx",
     "surge_arrestor": Path(__file__).parent.parent / "templates" / "Surge_Arrestor.xlsx",
-    "sel_751_feeder_relay": Path(__file__).parent.parent / "templates" / "SEL_751_Feeder_Relay.xlsm",
+    "sel_751_feeder_relay": Path(__file__).parent.parent / "templates" / "SEL_751_Feeder_Relay.xlsx",
 }
 
 LABELS = {
