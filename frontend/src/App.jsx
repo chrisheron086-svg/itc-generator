@@ -16,6 +16,7 @@ const Shell = styled.div`
   flex-direction: column;
   align-items: center;
   padding: 40px 20px 80px;
+  background: var(--bg);
 `;
 
 const Header = styled.div`
@@ -25,54 +26,68 @@ const Header = styled.div`
 `;
 
 const Title = styled.h1`
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: clamp(42px, 6vw, 72px);
-  letter-spacing: 3px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: clamp(28px, 5vw, 42px);
+  font-weight: 800;
   color: var(--accent);
   line-height: 1;
+  letter-spacing: -0.5px;
 `;
 
 const Subtitle = styled.p`
   color: var(--text-muted);
   margin-top: 8px;
-  font-size: 14px;
-  letter-spacing: 1px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2px;
   text-transform: uppercase;
+`;
+
+const GoldLine = styled.div`
+  width: 48px;
+  height: 3px;
+  background: #DFB200;
+  margin: 10px auto 0;
 `;
 
 const StepBar = styled.div`
   display: flex;
   gap: 0;
-  margin-bottom: 48px;
+  margin-bottom: 40px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   overflow: hidden;
   width: 100%;
   max-width: 640px;
+  background: var(--surface);
 `;
 
 const Step = styled.div`
   flex: 1;
-  padding: 10px 4px;
+  padding: 11px 4px;
   text-align: center;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 11px;
+  font-weight: 700;
   letter-spacing: 0.5px;
   text-transform: uppercase;
-  background: ${p => p.active ? "var(--accent)" : p.done ? "var(--surface2)" : "var(--surface)"};
-  color: ${p => p.active ? "#000" : p.done ? "var(--accent-dim)" : "var(--text-muted)"};
+  background: ${p => p.active ? "var(--accent)" : p.done ? "#F9F9F9" : "var(--surface)"};
+  color: ${p => p.active ? "#fff" : p.done ? "var(--accent)" : "var(--text-muted)"};
+  border-right: 1px solid var(--border);
   transition: all 0.2s;
   cursor: ${p => p.done ? "pointer" : "default"};
+  &:last-child { border-right: none; }
 `;
 
 const Card = styled.div`
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-top: 3px solid var(--accent);
+  border-radius: var(--radius);
   padding: 36px;
   width: 100%;
   max-width: 640px;
   animation: ${fadeIn} 0.3s ease;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
 `;
 
 const INITIAL_FORM = {
@@ -115,6 +130,7 @@ export default function App() {
     <Shell>
       <Header>
         <Title>ITC Generator</Title>
+        <GoldLine />
         <Subtitle>Consolidated Power Projects — Commissioning Tools</Subtitle>
       </Header>
       <StepBar>

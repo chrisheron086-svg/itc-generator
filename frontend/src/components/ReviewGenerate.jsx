@@ -32,12 +32,13 @@ const Table = styled.table`
 `;
 
 const Tag = styled.span`
-  background: rgba(232,255,71,0.1);
+  background: rgba(158,5,59,0.07);
   border: 1px solid var(--accent);
   color: var(--accent);
-  border-radius: 4px;
-  padding: 2px 8px;
-  font-size: 12px;
+  border-radius: 3px;
+  padding: 2px 7px;
+  font-size: 11px;
+  font-weight: 700;
   margin: 2px;
   display: inline-block;
 `;
@@ -46,9 +47,9 @@ const Status = styled.div`
   padding: 14px 16px;
   border-radius: var(--radius);
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
   margin-top: 16px;
-  background: ${p => p.error ? "rgba(255,77,77,0.1)" : "rgba(77,255,145,0.1)"};
+  background: ${p => p.error ? "rgba(158,5,59,0.07)" : "rgba(42,122,42,0.07)"};
   border: 1px solid ${p => p.error ? "var(--danger)" : "var(--success)"};
   color: ${p => p.error ? "var(--danger)" : "var(--success)"};
 `;

@@ -6,13 +6,13 @@ const Tag = styled.div`
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: rgba(232,255,71,0.1);
+  background: rgba(158,5,59,0.07);
   border: 1px solid var(--accent);
   color: var(--accent);
-  border-radius: 6px;
-  padding: 6px 12px;
-  font-size: 13px;
-  font-weight: 500;
+  border-radius: 4px;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 700;
   margin: 4px;
 `;
 

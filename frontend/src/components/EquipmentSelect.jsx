@@ -27,10 +27,10 @@ const Tile = styled.button`
   padding: 16px 12px;
   border-radius: var(--radius);
   border: 1px solid ${p => p.selected ? "var(--accent)" : "var(--border)"};
-  background: ${p => p.selected ? "rgba(232,255,71,0.08)" : "var(--surface2)"};
-  color: ${p => p.selected ? "var(--accent)" : "var(--text)"};
-  font-size: 14px;
-  font-weight: 500;
+  background: ${p => p.selected ? "rgba(158,5,59,0.06)" : "var(--surface2)"};
+  color: ${p => p.selected ? "var(--accent)" : "var(--text-light)"};
+  font-size: 13px;
+  font-weight: 600;
   text-align: left;
   cursor: pointer;
   transition: all 0.15s;

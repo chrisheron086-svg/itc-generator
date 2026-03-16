@@ -1,17 +1,19 @@
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap');
 
 :root {
-  --bg: #0e0f11;
-  --surface: #16181c;
-  --surface2: #1e2127;
-  --border: #2a2d35;
-  --accent: #e8ff47;
-  --accent-dim: #b8cc2a;
-  --text: #f0f2f5;
-  --text-muted: #6b7280;
-  --danger: #ff4d4d;
-  --success: #4dff91;
-  --radius: 8px;
+  --bg: #F2F2F2;
+  --surface: #FFFFFF;
+  --surface2: #F9F9F9;
+  --border: #DEDEDE;
+  --accent: #9E053B;
+  --accent-dim: #7a0430;
+  --accent-gold: #DFB200;
+  --text: #000000;
+  --text-muted: #707070;
+  --text-light: #4D4D4D;
+  --danger: #9E053B;
+  --success: #2a7a2a;
+  --radius: 6px;
 }
 
 * {
@@ -23,18 +25,18 @@
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 15px;
   line-height: 1.6;
   min-height: 100vh;
 }
 
 input, select {
-  background: var(--surface2);
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   color: var(--text);
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 14px;
   padding: 10px 14px;
   width: 100%;
@@ -52,9 +54,9 @@ input::placeholder {
 
 button {
   cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Montserrat', sans-serif;
 }
 
 select option {
-  background: var(--surface2);
+  background: var(--surface);
 }
