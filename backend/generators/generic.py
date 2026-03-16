@@ -1,5 +1,7 @@
 import openpyxl
+from openpyxl import Workbook
 from pathlib import Path
+import copy as copymod
 from .base import copy_sheet, copy_data_sheet, fill_common_fields
 
 TEMPLATES = {
@@ -29,15 +31,49 @@ LABELS = {
 }
 
 
+def load_as_xlsx(template_path: Path) -> openpyxl.Workbook:
+    """Load a template — if it's an xlsm, strip VBA by copying into a fresh Workbook."""
+    if str(template_path).endswith(".xlsm"):
+        wb_orig = openpyxl.load_workbook(template_path, keep_vba=True)
+        ws_src = wb_orig[wb_orig.sheetnames[0]]
+
+        wb_clean = Workbook()
+        ws_dst = wb_clean.active
+        ws_dst.title = ws_src.title
+
+        for key, dim in ws_src.column_dimensions.items():
+            ws_dst.column_dimensions[key].width = dim.width
+        for key, dim in ws_src.row_dimensions.items():
+            ws_dst.row_dimensions[key].height = dim.height
+
+        for row in ws_src.iter_rows():
+            for cell in row:
+                new_cell = ws_dst[cell.coordinate]
+                new_cell.value = cell.value
+                if cell.has_style:
+                    new_cell.font = copymod.copy(cell.font)
+                    new_cell.border = copymod.copy(cell.border)
+                    new_cell.fill = copymod.copy(cell.fill)
+                    new_cell.number_format = cell.number_format
+                    new_cell.protection = copymod.copy(cell.protection)
+                    new_cell.alignment = copymod.copy(cell.alignment)
+
+        for merged in ws_src.merged_cells.ranges:
+            ws_dst.merge_cells(str(merged))
+
+        return wb_clean
+    else:
+        return openpyxl.load_workbook(template_path)
+
+
 def generate(equipment_type: str, data: dict, panel_numbers: list[str], output_path: Path):
     template = TEMPLATES[equipment_type]
     label = LABELS[equipment_type]
 
-    keep_vba = str(template).endswith(".xlsm")
-    wb_orig = openpyxl.load_workbook(template, keep_vba=keep_vba)
+    wb_orig = load_as_xlsx(template)
     ws_src = wb_orig[wb_orig.sheetnames[0]]
 
-    wb_new = openpyxl.Workbook()
+    wb_new = Workbook()
     wb_new.remove(wb_new.active)
     copy_data_sheet(wb_orig, wb_new)
 
