@@ -15,7 +15,9 @@ const PRIMARY = [
   { value: "net", label: "NET" },
 ];
 
-const SECONDARY = [];
+const SECONDARY = [
+  { value: "sel_751_feeder_relay", label: "SEL 751 Feeder Relay" },
+];
 
 const CategoryRow = styled.div`
   display: grid;

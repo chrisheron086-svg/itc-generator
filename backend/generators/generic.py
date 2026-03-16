@@ -12,6 +12,7 @@ TEMPLATES = {
     "net": Path(__file__).parent.parent / "templates" / "NET.xlsx",
     "power_transformer": Path(__file__).parent.parent / "templates" / "Power_Transformer.xlsx",
     "surge_arrestor": Path(__file__).parent.parent / "templates" / "Surge_Arrestor.xlsx",
+    "sel_751_feeder_relay": Path(__file__).parent.parent / "templates" / "SEL_751_Feeder_Relay.xlsm",
 }
 
 LABELS = {
@@ -24,6 +25,7 @@ LABELS = {
     "net": "NET",
     "power_transformer": "Power Transformer",
     "surge_arrestor": "Surge Arrestor",
+    "sel_751_feeder_relay": "SEL 751 Feeder Relay",
 }
 
 
@@ -31,7 +33,8 @@ def generate(equipment_type: str, data: dict, panel_numbers: list[str], output_p
     template = TEMPLATES[equipment_type]
     label = LABELS[equipment_type]
 
-    wb_orig = openpyxl.load_workbook(template)
+    keep_vba = str(template).endswith(".xlsm")
+    wb_orig = openpyxl.load_workbook(template, keep_vba=keep_vba)
     ws_src = wb_orig[wb_orig.sheetnames[0]]
 
     wb_new = openpyxl.Workbook()

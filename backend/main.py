@@ -30,6 +30,7 @@ EQUIPMENT_TYPES = [
     "net",
     "power_transformer",
     "surge_arrestor",
+    "sel_751_feeder_relay",
 ]
 
 
