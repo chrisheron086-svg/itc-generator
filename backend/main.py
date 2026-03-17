@@ -36,6 +36,11 @@ EQUIPMENT_TYPES = [
     "power_transformer",
     "surge_arrestor",
     "sel_751_feeder_relay",
+    "ac_board",
+    "aux_tf",
+    "bess_pcs",
+    "dc_panel",
+    "feeder_panel",
 ]
 
 

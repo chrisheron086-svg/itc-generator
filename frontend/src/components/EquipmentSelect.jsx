@@ -13,6 +13,11 @@ const PRIMARY = [
   { value: "earth_switch", label: "Earth Switch" },
   { value: "ows", label: "OWS" },
   { value: "net", label: "NET" },
+  { value: "aux_tf", label: "Auxiliary Transformer" },
+  { value: "bess_pcs", label: "BESS PCS" },
+  { value: "ac_board", label: "AC Board" },
+  { value: "dc_panel", label: "DC Panel" },
+  { value: "feeder_panel", label: "Feeder Panel" },
 ];
 
 const SECONDARY = [

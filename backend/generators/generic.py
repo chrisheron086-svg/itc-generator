@@ -5,6 +5,7 @@ import copy as copymod
 from .base import copy_sheet, copy_data_sheet, fill_common_fields
 
 TEMPLATES = {
+    "circuit_breaker_generic": Path(__file__).parent.parent / "templates" / "Circuit_Breaker.xlsx",
     "current_transformer": Path(__file__).parent.parent / "templates" / "Current_Transformer.xlsx",
     "voltage_transformer": Path(__file__).parent.parent / "templates" / "Voltage_Transformer.xlsx",
     "neutral_ct": Path(__file__).parent.parent / "templates" / "Neutral_CT.xlsx",
@@ -15,9 +16,15 @@ TEMPLATES = {
     "power_transformer": Path(__file__).parent.parent / "templates" / "Power_Transformer.xlsx",
     "surge_arrestor": Path(__file__).parent.parent / "templates" / "Surge_Arrestor.xlsx",
     "sel_751_feeder_relay": Path(__file__).parent.parent / "templates" / "SEL_751_Feeder_Relay.xlsx",
+    "ac_board": Path(__file__).parent.parent / "templates" / "AC_Board.xlsx",
+    "aux_tf": Path(__file__).parent.parent / "templates" / "Aux_TF.xlsx",
+    "bess_pcs": Path(__file__).parent.parent / "templates" / "BESS_PCS.xlsx",
+    "dc_panel": Path(__file__).parent.parent / "templates" / "DC_Panel.xlsx",
+    "feeder_panel": Path(__file__).parent.parent / "templates" / "Feeder_Panel.xlsx",
 }
 
 LABELS = {
+    "circuit_breaker_generic": "Circuit Breaker",
     "current_transformer": "Current Transformer",
     "voltage_transformer": "Voltage Transformer",
     "neutral_ct": "Neutral CT",
@@ -28,6 +35,11 @@ LABELS = {
     "power_transformer": "Power Transformer",
     "surge_arrestor": "Surge Arrestor",
     "sel_751_feeder_relay": "SEL 751 Feeder Relay",
+    "ac_board": "AC Board",
+    "aux_tf": "Auxiliary Transformer",
+    "bess_pcs": "BESS PCS",
+    "dc_panel": "DC Panel",
+    "feeder_panel": "Feeder Panel",
 }
 
 
