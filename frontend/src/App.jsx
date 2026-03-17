@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import styled, { keyframes } from "styled-components";
+import Login from "./components/Login";
 import ProjectDetails from "./components/ProjectDetails";
 import PersonnelDetails from "./components/PersonnelDetails";
 import EquipmentSelect from "./components/EquipmentSelect";
@@ -90,15 +91,32 @@ const Card = styled.div`
   box-shadow: 0 2px 12px rgba(0,0,0,0.06);
 `;
 
+const SignOutBtn = styled.button`
+  position: fixed;
+  top: 16px;
+  right: 20px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  font-family: 'Montserrat', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 6px 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+  &:hover { border-color: var(--accent); color: var(--accent); }
+`;
+
 const INITIAL_FORM = {
-  // Project details — filled once
   cpp_project_name: "",
   cpp_job_no: "",
   client_project_title: "",
   client_project_number: "",
   site_location: "",
   date: new Date().toISOString().split("T")[0],
-  // Personnel — filled once
   prepared_by_name: "",
   prepared_by_position: "",
   checked_by_name: "",
@@ -106,12 +124,11 @@ const INITIAL_FORM = {
   checked_by_signature: "",
   client_checked_by_name: "",
   client_checked_by_position: "",
-  // Equipment — multiple types, each with their own panel numbers
-  // equipment_items: [{ equipment_type, bay_name, panel_numbers: [] }, ...]
   equipment_items: [],
 };
 
 export default function App() {
+  const [authed, setAuthed] = useState(sessionStorage.getItem("itc_auth") === "true");
   const [step, setStep] = useState(0);
   const [form, setForm] = useState(INITIAL_FORM);
 
@@ -119,6 +136,17 @@ export default function App() {
   const next = () => setStep(s => s + 1);
   const back = () => setStep(s => s - 1);
   const goTo = (i) => { if (i < step) setStep(i); };
+
+  const signOut = () => {
+    sessionStorage.removeItem("itc_auth");
+    setAuthed(false);
+    setStep(0);
+    setForm(INITIAL_FORM);
+  };
+
+  if (!authed) {
+    return <Login onLogin={() => setAuthed(true)} />;
+  }
 
   const stepComponents = [
     <ProjectDetails form={form} update={update} next={next} />,
@@ -130,6 +158,7 @@ export default function App() {
 
   return (
     <Shell>
+      <SignOutBtn onClick={signOut}>Sign Out</SignOutBtn>
       <Header>
         <Title>ITC Generator</Title>
         <GoldLine />

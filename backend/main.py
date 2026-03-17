@@ -6,6 +6,7 @@ from datetime import date
 from pathlib import Path
 import tempfile
 import zipfile
+import os
 import logging
 import traceback
 
@@ -69,6 +70,19 @@ def root():
 @app.get("/equipment-types")
 def get_equipment_types():
     return {"equipment_types": EQUIPMENT_TYPES}
+
+
+
+class LoginRequest(BaseModel):
+    password: str
+
+
+@app.post("/login")
+def login(req: LoginRequest):
+    correct = os.environ.get("ITC_PASSWORD", "CPP2024!")
+    if req.password == correct:
+        return {"success": True}
+    return {"success": False}
 
 
 @app.post("/generate-multi")
