@@ -4,23 +4,27 @@ from pathlib import Path
 import copy as copymod
 from .base import copy_sheet, copy_data_sheet, fill_common_fields
 
+TEMPLATES_DIR = Path(__file__).parent.parent / "templates"
+PRIMARY_TEMPLATES_DIR = TEMPLATES_DIR / "Primary_ITCs"
+PROTECTION_SECONDARY_TEMPLATES_DIR = TEMPLATES_DIR / "Protection_Secondary_ITCs"
+
 TEMPLATES = {
-    "circuit_breaker_generic": Path(__file__).parent.parent / "templates" / "Circuit_Breaker.xlsx",
-    "current_transformer": Path(__file__).parent.parent / "templates" / "Current_Transformer.xlsx",
-    "voltage_transformer": Path(__file__).parent.parent / "templates" / "Voltage_Transformer.xlsx",
-    "neutral_ct": Path(__file__).parent.parent / "templates" / "Neutral_CT.xlsx",
-    "isolator": Path(__file__).parent.parent / "templates" / "Isolator.xlsx",
-    "earth_switch": Path(__file__).parent.parent / "templates" / "Earth_Switch.xlsx",
-    "ows": Path(__file__).parent.parent / "templates" / "OWS.xlsx",
-    "net": Path(__file__).parent.parent / "templates" / "NET.xlsx",
-    "power_transformer": Path(__file__).parent.parent / "templates" / "Power_Transformer.xlsx",
-    "surge_arrestor": Path(__file__).parent.parent / "templates" / "Surge_Arrestor.xlsx",
-    "sel_751_feeder_relay": Path(__file__).parent.parent / "templates" / "SEL_751_Feeder_Relay.xlsx",
-    "ac_board": Path(__file__).parent.parent / "templates" / "AC_Board.xlsx",
-    "aux_tf": Path(__file__).parent.parent / "templates" / "Aux_TF.xlsx",
-    "bess_pcs": Path(__file__).parent.parent / "templates" / "BESS_PCS.xlsx",
-    "dc_panel": Path(__file__).parent.parent / "templates" / "DC_Panel.xlsx",
-    "feeder_panel": Path(__file__).parent.parent / "templates" / "Feeder_Panel.xlsx",
+    "circuit_breaker_generic": PRIMARY_TEMPLATES_DIR / "Circuit_Breaker.xlsx",
+    "current_transformer": PRIMARY_TEMPLATES_DIR / "Current_Transformer.xlsx",
+    "voltage_transformer": PRIMARY_TEMPLATES_DIR / "Voltage_Transformer.xlsx",
+    "neutral_ct": PRIMARY_TEMPLATES_DIR / "Neutral_CT.xlsx",
+    "isolator": PRIMARY_TEMPLATES_DIR / "Isolator.xlsx",
+    "earth_switch": PRIMARY_TEMPLATES_DIR / "Earth_Switch.xlsx",
+    "ows": PRIMARY_TEMPLATES_DIR / "OWS.xlsx",
+    "net": PRIMARY_TEMPLATES_DIR / "NET.xlsx",
+    "power_transformer": PRIMARY_TEMPLATES_DIR / "Power_Transformer.xlsx",
+    "surge_arrestor": PRIMARY_TEMPLATES_DIR / "Surge_Arrestor.xlsx",
+    "sel_751_feeder_relay": PROTECTION_SECONDARY_TEMPLATES_DIR / "SEL_751_Feeder_Relay.xlsx",
+    "ac_board": PRIMARY_TEMPLATES_DIR / "AC_Board.xlsx",
+    "aux_tf": PRIMARY_TEMPLATES_DIR / "Aux_TF.xlsx",
+    "bess_pcs": PRIMARY_TEMPLATES_DIR / "BESS_PCS.xlsx",
+    "dc_panel": PRIMARY_TEMPLATES_DIR / "DC_Panel.xlsx",
+    "feeder_panel": PRIMARY_TEMPLATES_DIR / "Feeder_Panel.xlsx",
 }
 
 LABELS = {

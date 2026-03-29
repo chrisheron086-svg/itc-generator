@@ -9,11 +9,17 @@ import zipfile
 import os
 import logging
 import traceback
+import shutil
+
+from starlette.background import BackgroundTask
 
 from generators import circuit_breaker, generic
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+TMP_ROOT = Path(__file__).parent / ".tmp"
+TMP_ROOT.mkdir(exist_ok=True)
 
 app = FastAPI(title="ITC Generator API")
 
@@ -67,6 +73,10 @@ class MultiITCRequest(BaseModel):
     date: date
 
 
+def cleanup_dir(path: Path):
+    shutil.rmtree(path, ignore_errors=True)
+
+
 @app.get("/")
 def root():
     return {"status": "ITC Generator API running"}
@@ -99,7 +109,7 @@ def generate_multi(req: MultiITCRequest):
     data = req.model_dump()
     data["date"] = datetime.combine(req.date, datetime.min.time())
 
-    tmp_dir = Path(tempfile.mkdtemp())
+    tmp_dir = Path(tempfile.mkdtemp(dir=TMP_ROOT))
     generated_files = []
 
     try:
@@ -132,6 +142,7 @@ def generate_multi(req: MultiITCRequest):
                 path=str(output_path),
                 filename=f"{safe_name}.xlsx",
                 media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                background=BackgroundTask(cleanup_dir, tmp_dir),
             )
 
         # Multiple files — zip with equipment type subfolders
@@ -147,10 +158,13 @@ def generate_multi(req: MultiITCRequest):
             path=str(zip_path),
             filename=f"{safe_project}_ITCs.zip",
             media_type="application/zip",
+            background=BackgroundTask(cleanup_dir, tmp_dir),
         )
 
     except HTTPException:
+        cleanup_dir(tmp_dir)
         raise
     except Exception as e:
         logger.error(f"Error generating ITC: {traceback.format_exc()}")
+        cleanup_dir(tmp_dir)
         raise HTTPException(status_code=500, detail=str(e))

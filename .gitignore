@@ -23,3 +23,6 @@ Thumbs.db
 # Temp files
 *.tmp
 *.xlsx.tmp
+backend/.tmp/
+backend/*.log
+frontend/*.log

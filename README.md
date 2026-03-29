@@ -1,155 +1,223 @@
-# ITC Generator — Consolidated Power Projects
+# ITC Generator - Consolidated Power Projects
 
-A web app for generating pre-filled Inspection and Test Certificate (ITC) Excel files for commissioning equipment.
+Internal web app for generating pre-filled Inspection and Test Certificate (ITC) Excel files for commissioning equipment.
 
-## Features
+## What It Does
 
-- Supports 10 equipment types (Circuit Breaker, CT, VT, Isolator, and more)
-- Step-by-step form — Equipment → Project → Personnel → Panel Numbers → Generate
-- Generates one ITC sheet per panel number in a single `.xlsx` file
-- A4 landscape, all columns fit to one page wide
-- All formatting and test content preserved from original templates
+- Password-protected login for internal use
+- Step-by-step wizard: Project -> Personnel -> Equipment -> Panels -> Review
+- Supports multiple equipment types in a single request
+- Generates one ITC sheet per panel number
+- Returns a single `.xlsx` for one ITC, or a `.zip` grouped by equipment type for multiple ITCs
+- Preserves the original template layout, merged cells, and print settings
+- Fills the standard CPP/client header fields, including checked-by signature in `G18`
 
----
+## Supported Equipment Types
+
+- Circuit Breaker
+- Current Transformer
+- Voltage Transformer
+- Neutral CT
+- Isolator
+- Earth Switch
+- OWS
+- NET
+- Power Transformer
+- Surge Arrestor
+- SEL 751 Feeder Relay
+- AC Board
+- Auxiliary Transformer
+- BESS PCS
+- DC Panel
+- Feeder Panel
 
 ## Project Structure
 
-```
+```text
 itc-generator/
-├── backend/                  # FastAPI Python backend
-│   ├── main.py               # API routes
-│   ├── generators/
-│   │   ├── base.py           # Shared copy + fill logic
-│   │   ├── circuit_breaker.py
-│   │   └── generic.py        # All other equipment types
-│   ├── templates/            # Blank .xlsx ITC templates
-│   ├── requirements.txt
-│   └── Dockerfile
-├── frontend/                 # React frontend
-│   ├── src/
-│   │   ├── App.jsx           # Step wizard shell
-│   │   └── components/
-│   │       ├── EquipmentSelect.jsx
-│   │       ├── ProjectDetails.jsx
-│   │       ├── PersonnelDetails.jsx
-│   │       ├── PanelNumbers.jsx
-│   │       └── ReviewGenerate.jsx
-│   ├── Dockerfile
-│   └── nginx.conf
-├── docker-compose.yml        # Local dev environment
-└── .github/workflows/
-    └── deploy.yml            # CI/CD pipeline
+|-- backend/
+|   |-- main.py
+|   |-- requirements.txt
+|   |-- Dockerfile
+|   |-- generators/
+|   |   |-- base.py
+|   |   |-- circuit_breaker.py
+|   |   `-- generic.py
+|   |-- templates/
+|   |   |-- Primary_ITCs/
+|   |   `-- Protection_Secondary_ITCs/
+|   `-- tests/
+|       `-- test_generate_multi.py
+|-- frontend/
+|   |-- src/
+|   |   |-- App.jsx
+|   |   |-- index.js
+|   |   |-- index.css
+|   |   `-- components/
+|   |-- Dockerfile
+|   `-- nginx.conf
+|-- docs/
+|   `-- ADD_TEMPLATE_PROCEDURE.md
+|-- docker-compose.yml
+`-- .github/workflows/deploy.yml
 ```
-
----
 
 ## Local Development
 
 ### Prerequisites
+
 - Python 3.11+
 - Node.js 20+
-- (Optional) Docker & Docker Compose
+- Docker Desktop (optional)
 
-### Option 1 — Run with Docker Compose
+### Option 1 - Run with Docker Compose
 
 ```bash
-git clone https://github.com/YOUR_ORG/itc-generator.git
-cd itc-generator
-docker-compose up --build
+docker compose up --build
 ```
 
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:8000
-- API Docs: http://localhost:8000/docs
+- Frontend: `http://localhost:3000`
+- Backend API: `http://localhost:8000`
+- API docs: `http://localhost:8000/docs`
 
-### Option 2 — Run manually
+The frontend Docker image accepts `REACT_APP_API_URL` as a build-time argument. The compose file leaves it blank so the bundled nginx config can proxy `/login`, `/equipment-types`, and `/generate-multi` to the backend container.
 
-**Backend:**
+### Option 2 - Run Manually
+
+Backend:
+
 ```bash
 cd backend
 python -m venv venv
-source venv/bin/activate        # Windows: venv\Scripts\activate
+venv\Scripts\activate
 pip install -r requirements.txt
 uvicorn main:app --reload --port 8000
 ```
 
-**Frontend:**
+Frontend:
+
 ```bash
 cd frontend
 npm install
-REACT_APP_API_URL=http://localhost:8000 npm start
+npm start
 ```
 
----
+`frontend/package.json` contains a development proxy to `http://localhost:8000`, so `npm start` does not require `REACT_APP_API_URL`.
+
+## Authentication
+
+The backend reads the app password from the `ITC_PASSWORD` environment variable. If it is not set, the fallback password is `CPP2024!`.
+
+Set it explicitly in any shared or deployed environment.
+
+## Testing
+
+Backend:
+
+```bash
+cd backend
+python -m unittest discover -s tests
+```
+
+Frontend:
+
+```bash
+cd frontend
+npm run build
+```
 
 ## Deployment
 
-### Backend — Render
-1. Create a new **Web Service** on [render.com](https://render.com)
-2. Set root directory to `backend`
-3. Build command: `pip install -r requirements.txt`
-4. Start command: `uvicorn main:app --host 0.0.0.0 --port $PORT`
+### Backend
 
-### Frontend — Vercel
-1. Import repo on [vercel.com](https://vercel.com)
-2. Set root directory to `frontend`
-3. Add environment variable: `REACT_APP_API_URL=https://your-backend.onrender.com`
+Deploy the `backend/` folder to Render, Railway, or another Python host. Set:
 
-### CI/CD
-The GitHub Actions workflow (`.github/workflows/deploy.yml`) runs on every push to `main`:
-- Lints and tests the backend
-- Builds the frontend
-- Add your Render/Vercel deploy hooks to the `deploy` job
+- `ITC_PASSWORD`
 
----
+### Frontend
+
+For standalone frontend deployments, set `REACT_APP_API_URL` to the backend base URL at build time, for example:
+
+```bash
+REACT_APP_API_URL=https://your-backend.example.com npm run build
+```
+
+### GitHub Actions
+
+`.github/workflows/deploy.yml` now:
+
+- installs backend dependencies
+- lints the backend with Ruff
+- runs backend generation tests
+- installs frontend dependencies
+- builds the frontend
+- triggers Render/Vercel deploy hooks when `RENDER_DEPLOY_HOOK_URL` and/or `VERCEL_DEPLOY_HOOK_URL` repository secrets are configured
 
 ## Adding New Equipment Types
 
-1. Add the blank `.xlsx` template to `backend/templates/`
-2. Add the key/label to `TEMPLATES` and `LABELS` in `backend/generators/generic.py`
-3. Add the option to the `EQUIPMENT` array in `frontend/src/components/EquipmentSelect.jsx`
+Templates are now grouped under:
 
----
+- `backend/templates/Primary_ITCs/`
+- `backend/templates/Protection_Secondary_ITCs/`
+
+See `docs/ADD_TEMPLATE_PROCEDURE.md` for the current template onboarding procedure.
 
 ## API Reference
 
-### `POST /generate`
+### `POST /login`
 
-Generates and returns an `.xlsx` file.
-
-**Request body:**
 ```json
 {
-  "equipment_type": "circuit_breaker",
-  "panel_numbers": ["+C02-Q10", "+C02-Q20"],
+  "password": "CPP2024!"
+}
+```
+
+### `GET /equipment-types`
+
+Returns the list of supported equipment keys.
+
+### `POST /generate-multi`
+
+Generates and returns either:
+
+- a single `.xlsx` file when one ITC is requested
+- a `.zip` file when multiple ITCs are requested
+
+Example request body:
+
+```json
+{
+  "equipment_items": [
+    {
+      "equipment_type": "circuit_breaker",
+      "bay_name": "Circuit Breaker",
+      "panel_numbers": ["+C02-Q10", "+C02-Q20"]
+    },
+    {
+      "equipment_type": "ac_board",
+      "bay_name": "AC Board",
+      "panel_numbers": ["+AC-01"]
+    }
+  ],
   "cpp_project_name": "Tailem Bend 3",
   "cpp_job_no": "12345",
-  "bay_name": "Circuit Breaker",
-  "client_project_title": "Tailem Bend 3 BESS",
-  "client_project_number": "12345",
-  "site_location": "205 Cormack Road",
   "prepared_by_name": "Chris Heron",
   "prepared_by_position": "Senior Commissioning Officer",
   "checked_by_name": "Frank Maloney",
   "checked_by_position": "Commissioning Manager",
   "checked_by_signature": "F Maloney",
+  "client_project_title": "Tailem Bend 3 BESS",
+  "client_project_number": "12345",
+  "site_location": "205 Cormack Road",
   "client_checked_by_name": "Andrew Pezzuto",
   "client_checked_by_position": "Senior Electrical Engineer",
   "date": "2026-03-16"
 }
 ```
 
-**Response:** `.xlsx` file download
-
----
-
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Frontend | React 18, styled-components |
-| Backend | Python 3.11, FastAPI |
-| Excel | openpyxl |
-| Containerisation | Docker, Docker Compose |
-| CI/CD | GitHub Actions |
-| Hosting | Render (backend) + Vercel (frontend) |
+- Frontend: React 18, styled-components, axios
+- Backend: FastAPI, Pydantic, openpyxl
+- Containers: Docker, Docker Compose, nginx
+- CI/CD: GitHub Actions plus optional deploy hooks

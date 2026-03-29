@@ -25,6 +25,10 @@ jobs:
         working-directory: backend
         run: pip install ruff && ruff check .
 
+      - name: Run backend tests
+        working-directory: backend
+        run: python -m unittest discover -s tests
+
   test-frontend:
     runs-on: ubuntu-latest
     steps:
@@ -53,5 +57,18 @@ jobs:
     if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
-      - name: Deploy (add your deployment step here)
-        run: echo "Add Railway / Render deploy hook here"
+      - name: Trigger Render deploy
+        if: ${{ secrets.RENDER_DEPLOY_HOOK_URL != '' }}
+        run: curl -fsSL -X POST "$RENDER_DEPLOY_HOOK_URL"
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+
+      - name: Trigger Vercel deploy
+        if: ${{ secrets.VERCEL_DEPLOY_HOOK_URL != '' }}
+        run: curl -fsSL -X POST "$VERCEL_DEPLOY_HOOK_URL"
+        env:
+          VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
+
+      - name: No deploy hooks configured
+        if: ${{ secrets.RENDER_DEPLOY_HOOK_URL == '' && secrets.VERCEL_DEPLOY_HOOK_URL == '' }}
+        run: echo "No deploy hooks configured. Set RENDER_DEPLOY_HOOK_URL and/or VERCEL_DEPLOY_HOOK_URL."

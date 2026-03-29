@@ -68,7 +68,7 @@ export default function PersonnelDetails({ form, update, next, back }) {
           <input
             value={form.client_checked_by_name}
             onChange={e => update({ client_checked_by_name: e.target.value })}
-            placeholder="e.g. Client Engineer"
+            placeholder="e.g. Client Representative"
           />
         </Field>
         <Field>
