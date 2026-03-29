@@ -4,31 +4,28 @@ from pathlib import Path
 import copy as copymod
 from .base import copy_sheet, copy_data_sheet, fill_common_fields
 
-TEMPLATES_DIR = Path(__file__).parent.parent / "templates"
-PRIMARY_TEMPLATES_DIR = TEMPLATES_DIR / "Primary_ITCs"
-PROTECTION_SECONDARY_TEMPLATES_DIR = TEMPLATES_DIR / "Protection_Secondary_ITCs"
+PRIMARY = Path(__file__).parent.parent / "templates" / "Primary_ITCs"
+SECONDARY = Path(__file__).parent.parent / "templates" / "Protection_Secondary_ITCs"
 
 TEMPLATES = {
-    "circuit_breaker_generic": PRIMARY_TEMPLATES_DIR / "Circuit_Breaker.xlsx",
-    "current_transformer": PRIMARY_TEMPLATES_DIR / "Current_Transformer.xlsx",
-    "voltage_transformer": PRIMARY_TEMPLATES_DIR / "Voltage_Transformer.xlsx",
-    "neutral_ct": PRIMARY_TEMPLATES_DIR / "Neutral_CT.xlsx",
-    "isolator": PRIMARY_TEMPLATES_DIR / "Isolator.xlsx",
-    "earth_switch": PRIMARY_TEMPLATES_DIR / "Earth_Switch.xlsx",
-    "ows": PRIMARY_TEMPLATES_DIR / "OWS.xlsx",
-    "net": PRIMARY_TEMPLATES_DIR / "NET.xlsx",
-    "power_transformer": PRIMARY_TEMPLATES_DIR / "Power_Transformer.xlsx",
-    "surge_arrestor": PRIMARY_TEMPLATES_DIR / "Surge_Arrestor.xlsx",
-    "sel_751_feeder_relay": PROTECTION_SECONDARY_TEMPLATES_DIR / "SEL_751_Feeder_Relay.xlsx",
-    "ac_board": PRIMARY_TEMPLATES_DIR / "AC_Board.xlsx",
-    "aux_tf": PRIMARY_TEMPLATES_DIR / "Aux_TF.xlsx",
-    "bess_pcs": PRIMARY_TEMPLATES_DIR / "BESS_PCS.xlsx",
-    "dc_panel": PRIMARY_TEMPLATES_DIR / "DC_Panel.xlsx",
-    "feeder_panel": PRIMARY_TEMPLATES_DIR / "Feeder_Panel.xlsx",
+    "current_transformer": PRIMARY / "Current_Transformer.xlsx",
+    "voltage_transformer": PRIMARY / "Voltage_Transformer.xlsx",
+    "neutral_ct": PRIMARY / "Neutral_CT.xlsx",
+    "isolator": PRIMARY / "Isolator.xlsx",
+    "earth_switch": PRIMARY / "Earth_Switch.xlsx",
+    "ows": PRIMARY / "OWS.xlsx",
+    "net": PRIMARY / "NET.xlsx",
+    "power_transformer": PRIMARY / "Power_Transformer.xlsx",
+    "surge_arrestor": PRIMARY / "Surge_Arrestor.xlsx",
+    "ac_board": PRIMARY / "AC_Board.xlsx",
+    "aux_tf": PRIMARY / "Aux_TF.xlsx",
+    "bess_pcs": PRIMARY / "BESS_PCS.xlsx",
+    "dc_panel": PRIMARY / "DC_Panel.xlsx",
+    "feeder_panel": PRIMARY / "Feeder_Panel.xlsx",
+    "sel_751_feeder_relay": SECONDARY / "SEL_751_Feeder_Relay.xlsx",
 }
 
 LABELS = {
-    "circuit_breaker_generic": "Circuit Breaker",
     "current_transformer": "Current Transformer",
     "voltage_transformer": "Voltage Transformer",
     "neutral_ct": "Neutral CT",
@@ -38,12 +35,12 @@ LABELS = {
     "net": "NET",
     "power_transformer": "Power Transformer",
     "surge_arrestor": "Surge Arrestor",
-    "sel_751_feeder_relay": "SEL 751 Feeder Relay",
     "ac_board": "AC Board",
     "aux_tf": "Auxiliary Transformer",
     "bess_pcs": "BESS PCS",
     "dc_panel": "DC Panel",
     "feeder_panel": "Feeder Panel",
+    "sel_751_feeder_relay": "SEL 751 Feeder Relay",
 }
 
 
