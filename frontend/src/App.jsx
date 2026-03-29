@@ -1,14 +1,15 @@
 import React, { useState } from "react";
 import styled, { keyframes } from "styled-components";
 import Login from "./components/Login";
+import ClientSelect from "./components/ClientSelect";
 import ProjectDetails from "./components/ProjectDetails";
 import PersonnelDetails from "./components/PersonnelDetails";
 import EquipmentSelect from "./components/EquipmentSelect";
 import PanelNumbers from "./components/PanelNumbers";
 import IndexUpload from "./components/IndexUpload";
 import ReviewGenerate from "./components/ReviewGenerate";
-
-const STEPS = ["Project", "Personnel", "Equipment", "Generate"];
+import AdminPanel from "./components/AdminPanel";
+import CLIENTS from "./clients";
 
 const fadeIn = keyframes`from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); }`;
 
@@ -117,10 +118,15 @@ const ModeBtn = styled.button`
   &:hover { border-color: var(--accent); color: var(--accent); }
 `;
 
-const SignOutBtn = styled.button`
+const TopBar = styled.div`
   position: fixed;
   top: 16px;
   right: 20px;
+  display: flex;
+  gap: 8px;
+`;
+
+const TopBtn = styled.button`
   background: none;
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -137,6 +143,7 @@ const SignOutBtn = styled.button`
 `;
 
 const INITIAL_FORM = {
+  _client_id: null,
   cpp_project_name: "",
   cpp_job_no: "",
   client_project_title: "",
@@ -155,16 +162,26 @@ const INITIAL_FORM = {
   index_file_name: "",
 };
 
-// Manual mode steps: Project → Personnel → Equipment → Panels → Generate
-// Index mode steps:  Project → Personnel → Index Upload → Generate
-const MANUAL_STEPS = ["Project", "Personnel", "Equipment", "Panels", "Generate"];
-const INDEX_STEPS = ["Project", "Personnel", "Index", "Generate"];
+const ADMIN_PASSWORD = "CPPAdmin@1";
+
+const MANUAL_STEPS = ["Client", "Project", "Personnel", "Equipment", "Panels", "Generate"];
+const INDEX_STEPS = ["Client", "Project", "Personnel", "Index", "Generate"];
 
 export default function App() {
   const [authed, setAuthed] = useState(sessionStorage.getItem("itc_auth") === "true");
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
+  const [adminPwInput, setAdminPwInput] = useState("");
+  const [adminPwError, setAdminPwError] = useState("");
   const [step, setStep] = useState(0);
   const [form, setForm] = useState(INITIAL_FORM);
-  const [mode, setMode] = useState("manual"); // "manual" or "index"
+  const [mode, setMode] = useState("manual");
+
+  // Load clients — session storage overrides defaults
+  const getClients = () => {
+    const stored = sessionStorage.getItem("itc_clients");
+    return stored ? JSON.parse(stored) : CLIENTS;
+  };
 
   const update = (fields) => setForm(f => ({ ...f, ...fields }));
   const next = () => setStep(s => s + 1);
@@ -174,6 +191,7 @@ export default function App() {
   const signOut = () => {
     sessionStorage.removeItem("itc_auth");
     setAuthed(false);
+    setIsAdmin(false);
     setStep(0);
     setForm(INITIAL_FORM);
   };
@@ -184,12 +202,48 @@ export default function App() {
     setForm(INITIAL_FORM);
   };
 
+  const handleAdminLogin = () => {
+    if (adminPwInput === ADMIN_PASSWORD) {
+      setIsAdmin(true);
+      setShowAdminLogin(false);
+      setAdminPwInput("");
+      setAdminPwError("");
+    } else {
+      setAdminPwError("Incorrect admin password.");
+    }
+  };
+
   if (!authed) return <Login onLogin={() => setAuthed(true)} />;
+
+  if (isAdmin) {
+    return <AdminPanel onClose={() => setIsAdmin(false)} initialClients={getClients()} />;
+  }
+
+  if (showAdminLogin) {
+    return (
+      <Shell>
+        <Card style={{ marginTop: 80, maxWidth: 420 }}>
+          <Title style={{ fontSize: 24, marginBottom: 8 }}>Admin Login</Title>
+          <GoldLine style={{ margin: "0 0 24px 0" }} />
+          {adminPwError && <div style={{ color: "var(--accent)", fontSize: 12, fontWeight: 600, marginBottom: 12 }}>⚠ {adminPwError}</div>}
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.8px", textTransform: "uppercase", color: "var(--text-light)", display: "block", marginBottom: 6 }}>Admin Password</label>
+            <input type="password" value={adminPwInput} onChange={e => setAdminPwInput(e.target.value)} onKeyDown={e => e.key === "Enter" && handleAdminLogin()} placeholder="Enter admin password" autoFocus />
+          </div>
+          <div style={{ display: "flex", gap: 10 }}>
+            <ModeBtn onClick={() => setShowAdminLogin(false)}>Cancel</ModeBtn>
+            <ModeBtn active onClick={handleAdminLogin}>Sign In</ModeBtn>
+          </div>
+        </Card>
+      </Shell>
+    );
+  }
 
   const steps = mode === "index" ? INDEX_STEPS : MANUAL_STEPS;
 
   const manualComponents = [
-    <ProjectDetails form={form} update={update} next={next} />,
+    <ClientSelect form={form} update={update} next={next} clients={getClients()} />,
+    <ProjectDetails form={form} update={update} next={next} back={back} />,
     <PersonnelDetails form={form} update={update} next={next} back={back} />,
     <EquipmentSelect form={form} update={update} next={next} back={back} />,
     <PanelNumbers form={form} update={update} next={next} back={back} />,
@@ -197,7 +251,8 @@ export default function App() {
   ];
 
   const indexComponents = [
-    <ProjectDetails form={form} update={update} next={next} />,
+    <ClientSelect form={form} update={update} next={next} clients={getClients()} />,
+    <ProjectDetails form={form} update={update} next={next} back={back} />,
     <PersonnelDetails form={form} update={update} next={next} back={back} />,
     <IndexUpload form={form} update={update} next={next} back={back} />,
     <ReviewGenerate form={form} mode="index" back={back} />,
@@ -207,7 +262,11 @@ export default function App() {
 
   return (
     <Shell>
-      <SignOutBtn onClick={signOut}>Sign Out</SignOutBtn>
+      <TopBar>
+        <TopBtn onClick={() => setShowAdminLogin(true)}>⚙ Admin</TopBtn>
+        <TopBtn onClick={signOut}>Sign Out</TopBtn>
+      </TopBar>
+
       <Header>
         <Title>ITC Generator</Title>
         <GoldLine />
@@ -216,12 +275,8 @@ export default function App() {
 
       {step === 0 && (
         <ModeToggle>
-          <ModeBtn active={mode === "manual"} onClick={() => switchMode("manual")}>
-            ✎ Manual Entry
-          </ModeBtn>
-          <ModeBtn active={mode === "index"} onClick={() => switchMode("index")}>
-            📋 Upload Index
-          </ModeBtn>
+          <ModeBtn active={mode === "manual"} onClick={() => switchMode("manual")}>✎ Manual Entry</ModeBtn>
+          <ModeBtn active={mode === "index"} onClick={() => switchMode("index")}>📋 Upload Index</ModeBtn>
         </ModeToggle>
       )}
 
