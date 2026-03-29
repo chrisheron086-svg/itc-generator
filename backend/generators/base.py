@@ -26,12 +26,12 @@ def copy_sheet(ws_src, wb_dst, sheet_name):
     for merged in ws_src.merged_cells.ranges:
         ws_dst.merge_cells(str(merged))
 
-    # A4 landscape, fit all columns to one page wide
+    # A4 portrait, fit all columns to one page wide
     ws_dst.sheet_properties = WorksheetProperties(
         pageSetUpPr=PageSetupProperties(fitToPage=True)
     )
     ws_dst.page_setup.paperSize = ws_dst.PAPERSIZE_A4
-    ws_dst.page_setup.orientation = ws_dst.ORIENTATION_LANDSCAPE
+    ws_dst.page_setup.orientation = ws_dst.ORIENTATION_PORTRAIT
     ws_dst.page_setup.fitToWidth = 1
     ws_dst.page_setup.fitToHeight = 0
     ws_dst.page_margins = PageMargins(
@@ -57,8 +57,8 @@ def fill_common_fields(ws, data: dict, panel_num: str, title: str):
     # CPP project details
     ws["G9"] = data.get("cpp_project_name", "")
     ws["G10"] = data.get("cpp_job_no", "")
-    ws["G11"] = data.get("bay_name", "")
-    ws["G12"] = panel_num
+    ws["G11"] = data.get("functional_location") or data.get("bay_name", "")
+    ws["G12"] = data.get("reference") or panel_num
 
     # Personnel
     ws["G13"] = data.get("prepared_by_name", "")
@@ -72,12 +72,6 @@ def fill_common_fields(ws, data: dict, panel_num: str, title: str):
     ws["G19"] = data.get("date")
     if ws["G19"].value:
         ws["G19"].number_format = "DD/MM/YYYY"
-
-    # Reference number and functional location (from index upload)
-    if data.get("reference"):
-        ws["G11"] = data.get("reference", "")
-    if data.get("functional_location"):
-        ws["G10"] = data.get("functional_location", "")
 
     # Client details
     ws["T9"] = data.get("client_project_title", "")
