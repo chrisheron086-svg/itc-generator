@@ -46,13 +46,29 @@ const ClientHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 8px;
 `;
 
 const ClientName = styled.h2`
   font-size: 16px;
   font-weight: 800;
   color: var(--text);
+`;
+
+const ClientMeta = styled.div`
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+`;
+
+const FolderBadge = styled.span`
+  background: rgba(158,5,59,0.07);
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 700;
 `;
 
 const BtnGroup = styled.div`
@@ -105,9 +121,21 @@ const SaveMsg = styled.div`
   max-width: 800px;
 `;
 
+const HintBox = styled.div`
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+  line-height: 1.6;
+`;
+
 const EMPTY_CLIENT = {
   id: "",
   name: "",
+  template_folder: "",
   cpp_project_name: "",
   cpp_job_no: "",
   client_project_title: "",
@@ -120,6 +148,8 @@ const EMPTY_CLIENT = {
   checked_by_signature: "",
   client_checked_by_name: "",
   client_checked_by_position: "",
+  primary_equipment: [],
+  secondary_equipment: [],
 };
 
 export default function AdminPanel({ onClose, initialClients }) {
@@ -129,7 +159,6 @@ export default function AdminPanel({ onClose, initialClients }) {
 
   const startEdit = (client) => setEditing({ ...client });
   const startNew = () => setEditing({ ...EMPTY_CLIENT, id: `client_${Date.now()}` });
-
   const updateField = (key, val) => setEditing(e => ({ ...e, [key]: val }));
 
   const saveClient = () => {
@@ -141,11 +170,11 @@ export default function AdminPanel({ onClose, initialClients }) {
     setEditing(null);
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
-    // Save to localStorage for persistence within session
     sessionStorage.setItem("itc_clients", JSON.stringify(updated));
   };
 
   const deleteClient = (id) => {
+    if (!window.confirm("Delete this client profile?")) return;
     const updated = clients.filter(c => c.id !== id);
     setClients(updated);
     sessionStorage.setItem("itc_clients", JSON.stringify(updated));
@@ -166,15 +195,24 @@ export default function AdminPanel({ onClose, initialClients }) {
             <ClientName>{editing.name || "New Client"}</ClientName>
             <BtnGroup>
               <Btn onClick={() => setEditing(null)}>Cancel</Btn>
-              <Btn primary onClick={saveClient} disabled={!editing.name}>Save Client</Btn>
+              <Btn primary onClick={saveClient} disabled={!editing.name || !editing.template_folder}>Save</Btn>
             </BtnGroup>
           </ClientHeader>
 
-          <SectionLabel>Client Profile Name</SectionLabel>
-          <Field>
-            <label>Display Name</label>
-            <input value={editing.name} onChange={e => updateField("name", e.target.value)} placeholder="e.g. Tailem Bend 3 BESS" />
-          </Field>
+          <SectionLabel>Profile</SectionLabel>
+          <Row>
+            <Field>
+              <label>Client Display Name</label>
+              <input value={editing.name} onChange={e => updateField("name", e.target.value)} placeholder="e.g. Tailem Bend 3 BESS" />
+            </Field>
+            <Field>
+              <label>Template Folder Name</label>
+              <input value={editing.template_folder} onChange={e => updateField("template_folder", e.target.value)} placeholder="e.g. Tailem_Bend_3" />
+            </Field>
+          </Row>
+          <HintBox>
+            📁 The template folder must exist at <strong>backend/templates/[folder name]/</strong> in the project. Create the folder and add the client's ITC templates there before using this profile.
+          </HintBox>
 
           <GoldLine />
           <SectionLabel>CPP Project Details</SectionLabel>
@@ -250,9 +288,8 @@ export default function AdminPanel({ onClose, initialClients }) {
               <ClientHeader>
                 <div>
                   <ClientName>{client.name}</ClientName>
-                  <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 4 }}>
-                    Job No: {client.cpp_job_no} — {client.site_location}
-                  </div>
+                  <ClientMeta>Job No: {client.cpp_job_no} — {client.site_location}</ClientMeta>
+                  <FolderBadge>📁 {client.template_folder}</FolderBadge>
                 </div>
                 <BtnGroup>
                   <Btn onClick={() => deleteClient(client.id)}>Delete</Btn>

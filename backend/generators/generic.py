@@ -4,27 +4,6 @@ from pathlib import Path
 import copy as copymod
 from .base import copy_sheet, copy_data_sheet, fill_common_fields
 
-PRIMARY = Path(__file__).parent.parent / "templates" / "Primary_ITCs"
-SECONDARY = Path(__file__).parent.parent / "templates" / "Protection_Secondary_ITCs"
-
-TEMPLATES = {
-    "current_transformer": PRIMARY / "Current_Transformer.xlsx",
-    "voltage_transformer": PRIMARY / "Voltage_Transformer.xlsx",
-    "neutral_ct": PRIMARY / "Neutral_CT.xlsx",
-    "isolator": PRIMARY / "Isolator.xlsx",
-    "earth_switch": PRIMARY / "Earth_Switch.xlsx",
-    "ows": PRIMARY / "OWS.xlsx",
-    "net": PRIMARY / "NET.xlsx",
-    "power_transformer": PRIMARY / "Power_Transformer.xlsx",
-    "surge_arrestor": PRIMARY / "Surge_Arrestor.xlsx",
-    "ac_board": PRIMARY / "AC_Board.xlsx",
-    "aux_tf": PRIMARY / "Aux_TF.xlsx",
-    "bess_pcs": PRIMARY / "BESS_PCS.xlsx",
-    "dc_panel": PRIMARY / "DC_Panel.xlsx",
-    "feeder_panel": PRIMARY / "Feeder_Panel.xlsx",
-    "sel_751_feeder_relay": SECONDARY / "SEL_751_Feeder_Relay.xlsx",
-}
-
 LABELS = {
     "current_transformer": "Current Transformer",
     "voltage_transformer": "Voltage Transformer",
@@ -35,17 +14,17 @@ LABELS = {
     "net": "NET",
     "power_transformer": "Power Transformer",
     "surge_arrestor": "Surge Arrestor",
+    "sel_751_feeder_relay": "SEL 751 Feeder Relay",
     "ac_board": "AC Board",
     "aux_tf": "Auxiliary Transformer",
     "bess_pcs": "BESS PCS",
     "dc_panel": "DC Panel",
     "feeder_panel": "Feeder Panel",
-    "sel_751_feeder_relay": "SEL 751 Feeder Relay",
 }
 
 
 def load_as_xlsx(template_path: Path) -> openpyxl.Workbook:
-    """Load a template — if it's an xlsm, strip VBA by copying into a fresh Workbook."""
+    """Load template — strip VBA if xlsm."""
     if str(template_path).endswith(".xlsm"):
         wb_orig = openpyxl.load_workbook(template_path, keep_vba=True)
         ws_src = wb_orig[wb_orig.sheetnames[0]]
@@ -79,11 +58,10 @@ def load_as_xlsx(template_path: Path) -> openpyxl.Workbook:
         return openpyxl.load_workbook(template_path)
 
 
-def generate(equipment_type: str, data: dict, panel_numbers: list[str], output_path: Path):
-    template = TEMPLATES[equipment_type]
-    label = LABELS[equipment_type]
+def generate(equipment_type: str, data: dict, panel_numbers: list[str], output_path: Path, template_path: Path):
+    label = LABELS.get(equipment_type, equipment_type.replace("_", " ").title())
 
-    wb_orig = load_as_xlsx(template)
+    wb_orig = load_as_xlsx(template_path)
     ws_src = wb_orig[wb_orig.sheetnames[0]]
 
     wb_new = Workbook()

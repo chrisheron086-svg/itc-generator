@@ -165,6 +165,7 @@ const INITIAL_FORM = {
 const ADMIN_PASSWORD = "CPPAdmin@1";
 
 const MANUAL_STEPS = ["Client", "Project", "Personnel", "Equipment", "Panels", "Generate"];
+const INDEX_STEPS_NEW = ["Client", "Project", "Personnel", "Index", "Generate"];
 const INDEX_STEPS = ["Client", "Project", "Personnel", "Index", "Generate"];
 
 export default function App() {

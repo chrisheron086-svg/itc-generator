@@ -105,6 +105,7 @@ export default function ReviewGenerate({ form, mode, back }) {
         }
         payload = {
           equipment_items,
+          template_folder: form._template_folder || "",
           cpp_project_name: form.cpp_project_name,
           cpp_job_no: form.cpp_job_no,
           client_project_title: form.client_project_title,
@@ -122,6 +123,7 @@ export default function ReviewGenerate({ form, mode, back }) {
       } else {
         payload = {
           equipment_items: form.equipment_items,
+          template_folder: form._template_folder || "",
           cpp_project_name: form.cpp_project_name,
           cpp_job_no: form.cpp_job_no,
           client_project_title: form.client_project_title,

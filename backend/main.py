@@ -24,6 +24,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+TEMPLATES_ROOT = Path(__file__).parent / "templates"
+
 EQUIPMENT_TYPES = [
     "circuit_breaker",
     "current_transformer",
@@ -43,6 +45,76 @@ EQUIPMENT_TYPES = [
     "feeder_panel",
 ]
 
+TEMPLATE_FILENAMES = {
+    "circuit_breaker": "Circuit_Breaker.xlsx",
+    "current_transformer": "Current_Transformer.xlsx",
+    "voltage_transformer": "Voltage_Transformer.xlsx",
+    "neutral_ct": "Neutral_CT.xlsx",
+    "isolator": "Isolator.xlsx",
+    "earth_switch": "Earth_Switch.xlsx",
+    "ows": "OWS.xlsx",
+    "net": "NET.xlsx",
+    "power_transformer": "Power_Transformer.xlsx",
+    "surge_arrestor": "Surge_Arrestor.xlsx",
+    "sel_751_feeder_relay": "SEL_751_Feeder_Relay.xlsx",
+    "ac_board": "AC_Board.xlsx",
+    "aux_tf": "Aux_TF.xlsx",
+    "bess_pcs": "BESS_PCS.xlsx",
+    "dc_panel": "DC_Panel.xlsx",
+    "feeder_panel": "Feeder_Panel.xlsx",
+}
+
+LABELS = {
+    "circuit_breaker": "Circuit Breaker",
+    "current_transformer": "Current Transformer",
+    "voltage_transformer": "Voltage Transformer",
+    "neutral_ct": "Neutral CT",
+    "isolator": "Isolator",
+    "earth_switch": "Earth Switch",
+    "ows": "OWS",
+    "net": "NET",
+    "power_transformer": "Power Transformer",
+    "surge_arrestor": "Surge Arrestor",
+    "sel_751_feeder_relay": "SEL 751 Feeder Relay",
+    "ac_board": "AC Board",
+    "aux_tf": "Auxiliary Transformer",
+    "bess_pcs": "BESS PCS",
+    "dc_panel": "DC Panel",
+    "feeder_panel": "Feeder Panel",
+}
+
+
+def find_template(equipment_type: str, template_folder: str) -> Path:
+    """Find template in client folder first, fall back to legacy subfolders."""
+    filename = TEMPLATE_FILENAMES.get(equipment_type)
+    if not filename:
+        raise FileNotFoundError(f"Unknown equipment type: {equipment_type}")
+
+    # 1. Check client-specific folder
+    if template_folder:
+        client_path = TEMPLATES_ROOT / template_folder / filename
+        if client_path.exists():
+            return client_path
+
+    # 2. Fall back to Primary_ITCs subfolder
+    primary_path = TEMPLATES_ROOT / "Primary_ITCs" / filename
+    if primary_path.exists():
+        return primary_path
+
+    # 3. Fall back to Protection_Secondary_ITCs subfolder
+    secondary_path = TEMPLATES_ROOT / "Protection_Secondary_ITCs" / filename
+    if secondary_path.exists():
+        return secondary_path
+
+    # 4. Fall back to templates root
+    root_path = TEMPLATES_ROOT / filename
+    if root_path.exists():
+        return root_path
+
+    raise FileNotFoundError(
+        f"Template '{filename}' not found for client folder '{template_folder}'"
+    )
+
 
 class EquipmentItem(BaseModel):
     equipment_type: str
@@ -54,6 +126,7 @@ class EquipmentItem(BaseModel):
 
 class MultiITCRequest(BaseModel):
     equipment_items: list[EquipmentItem]
+    template_folder: str = ""
     cpp_project_name: str
     cpp_job_no: str
     prepared_by_name: str
@@ -69,6 +142,10 @@ class MultiITCRequest(BaseModel):
     date: date
 
 
+class LoginRequest(BaseModel):
+    password: str
+
+
 @app.get("/")
 def root():
     return {"status": "ITC Generator API running"}
@@ -79,14 +156,9 @@ def get_equipment_types():
     return {"equipment_types": EQUIPMENT_TYPES}
 
 
-
-class LoginRequest(BaseModel):
-    password: str
-
-
 @app.post("/login")
 def login(req: LoginRequest):
-    correct = os.environ.get("ITC_PASSWORD", "CPP2024!")
+    correct = os.environ.get("ITC_PASSWORD", "CPPCommissioning@1")
     if req.password == correct:
         return {"success": True}
     return {"success": False}
@@ -106,28 +178,39 @@ def generate_multi(req: MultiITCRequest):
 
     try:
         for item in req.equipment_items:
-            logger.info(f"Processing equipment type: {item.equipment_type}")
+            logger.info(f"Processing: {item.equipment_type} — {item.panel_numbers}")
+
             if item.equipment_type not in EQUIPMENT_TYPES:
                 raise HTTPException(status_code=400, detail=f"Unknown equipment type: {item.equipment_type}")
 
-            item_data = {**data, "bay_name": item.bay_name, "reference": item.reference, "functional_location": item.functional_location}
+            # Find template in client folder or fallback
+            try:
+                template_path = find_template(item.equipment_type, req.template_folder)
+            except FileNotFoundError as e:
+                raise HTTPException(status_code=400, detail=str(e))
+
+            item_data = {
+                **data,
+                "bay_name": item.bay_name,
+                "reference": item.reference,
+                "functional_location": item.functional_location,
+            }
 
             for panel_num in item.panel_numbers:
-                logger.info(f"Generating ITC for panel: {panel_num}")
                 safe_name = panel_num.replace("+", "").replace("-", "_").replace("/", "_")
                 output_path = tmp_dir / f"{item.equipment_type}_{safe_name}.xlsx"
 
                 if item.equipment_type == "circuit_breaker":
-                    circuit_breaker.generate(item_data, [panel_num], output_path)
+                    circuit_breaker.generate(item_data, [panel_num], output_path, template_path)
                 else:
-                    generic.generate(item.equipment_type, item_data, [panel_num], output_path)
+                    generic.generate(item.equipment_type, item_data, [panel_num], output_path, template_path)
 
-                logger.info(f"Successfully generated: {output_path}")
+                logger.info(f"Generated: {output_path}")
                 generated_files.append((panel_num, item.equipment_type, output_path, item.reference))
 
         # Single file — return xlsx directly
         if len(generated_files) == 1:
-            panel_num, eq_type, output_path, reference = generated_files[0]
+            panel_num, _, output_path, reference = generated_files[0]
             safe_panel = panel_num.replace("/", "-")
             safe_ref = reference if reference else ""
             filename = f"{safe_ref} {safe_panel}.xlsx".strip() if safe_ref else f"{safe_panel}.xlsx"
@@ -138,16 +221,16 @@ def generate_multi(req: MultiITCRequest):
             )
 
         # Multiple files — zip with equipment type subfolders
-        zip_path = tmp_dir / f"{req.cpp_project_name}_ITCs.zip"
+        safe_project = req.cpp_project_name.replace(" ", "_")
+        zip_path = tmp_dir / f"{safe_project}_ITCs.zip"
         with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
             for panel_num, eq_type, xlsx_path, reference in generated_files:
                 safe_panel = panel_num.replace("/", "-")
                 safe_ref = reference if reference else ""
                 filename = f"{safe_ref} {safe_panel}.xlsx".strip() if safe_ref else f"{safe_panel}.xlsx"
-                folder = eq_type.replace("_", " ").title()
+                folder = LABELS.get(eq_type, eq_type).replace(" ", "_")
                 zf.write(xlsx_path, arcname=f"{folder}/{filename}")
 
-        safe_project = req.cpp_project_name.replace(" ", "_")
         return FileResponse(
             path=str(zip_path),
             filename=f"{safe_project}_ITCs.zip",
@@ -157,5 +240,5 @@ def generate_multi(req: MultiITCRequest):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error generating ITC: {traceback.format_exc()}")
+        logger.error(f"Error: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=str(e))

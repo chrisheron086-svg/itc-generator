@@ -71,6 +71,7 @@ export default function ClientSelect({ form, update, next, clients: CLIENTS }) {
     // Pre-fill all form fields from client profile
     update({
       _client_id: client.id,
+      _template_folder: client.template_folder,
       cpp_project_name: client.cpp_project_name,
       cpp_job_no: client.cpp_job_no,
       client_project_title: client.client_project_title,

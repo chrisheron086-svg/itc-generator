@@ -2,13 +2,10 @@ import openpyxl
 from pathlib import Path
 from .base import copy_sheet, copy_data_sheet, fill_common_fields
 
-TEMPLATE = Path(__file__).parent.parent / "templates" / "Primary_ITCs" / "Circuit_Breaker.xlsx"
 
-
-def generate(data: dict, panel_numbers: list[str], output_path: Path):
-    wb_orig = openpyxl.load_workbook(TEMPLATE)
-    ws_orig = wb_orig.sheetnames[0]
-    ws_src = wb_orig[ws_orig]
+def generate(data: dict, panel_numbers: list[str], output_path: Path, template_path: Path):
+    wb_orig = openpyxl.load_workbook(template_path)
+    ws_src = wb_orig[wb_orig.sheetnames[0]]
 
     wb_new = openpyxl.Workbook()
     wb_new.remove(wb_new.active)
