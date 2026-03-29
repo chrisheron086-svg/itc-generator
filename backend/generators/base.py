@@ -69,6 +69,7 @@ def fill_common_fields(ws, data: dict, panel_num: str, title: str):
 
     ws["G16"] = data.get("checked_by_name", "")
     ws["G17"] = data.get("checked_by_position", "")
+    ws["G18"] = data.get("checked_by_signature", "")
     ws["G19"] = data.get("date")
     if ws["G19"].value:
         ws["G19"].number_format = "DD/MM/YYYY"
