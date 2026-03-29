@@ -123,26 +123,29 @@ def generate_multi(req: MultiITCRequest):
                     generic.generate(item.equipment_type, item_data, [panel_num], output_path)
 
                 logger.info(f"Successfully generated: {output_path}")
-                generated_files.append((panel_num, item.equipment_type, output_path))
+                generated_files.append((panel_num, item.equipment_type, output_path, item.reference))
 
         # Single file — return xlsx directly
         if len(generated_files) == 1:
-            _, _, output_path = generated_files[0]
-            panel_num = generated_files[0][0]
-            safe_name = panel_num.replace("+", "").replace("-", "_").replace("/", "_")
+            panel_num, eq_type, output_path, reference = generated_files[0]
+            safe_panel = panel_num.replace("/", "-")
+            safe_ref = reference if reference else ""
+            filename = f"{safe_ref} {safe_panel}.xlsx".strip() if safe_ref else f"{safe_panel}.xlsx"
             return FileResponse(
                 path=str(output_path),
-                filename=f"{safe_name}.xlsx",
+                filename=filename,
                 media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             )
 
         # Multiple files — zip with equipment type subfolders
         zip_path = tmp_dir / f"{req.cpp_project_name}_ITCs.zip"
         with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
-            for panel_num, eq_type, xlsx_path in generated_files:
-                safe_panel = panel_num.replace("+", "").replace("-", "_").replace("/", "_")
+            for panel_num, eq_type, xlsx_path, reference in generated_files:
+                safe_panel = panel_num.replace("/", "-")
+                safe_ref = reference if reference else ""
+                filename = f"{safe_ref} {safe_panel}.xlsx".strip() if safe_ref else f"{safe_panel}.xlsx"
                 folder = eq_type.replace("_", " ").title()
-                zf.write(xlsx_path, arcname=f"{folder}/{safe_panel}.xlsx")
+                zf.write(xlsx_path, arcname=f"{folder}/{filename}")
 
         safe_project = req.cpp_project_name.replace(" ", "_")
         return FileResponse(
