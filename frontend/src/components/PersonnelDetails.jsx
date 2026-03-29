@@ -21,7 +21,7 @@ export default function PersonnelDetails({ form, update, next, back }) {
           <input
             value={form.prepared_by_name}
             onChange={e => update({ prepared_by_name: e.target.value })}
-            placeholder="e.g. Chris Heron"
+            placeholder="e.g. Site Commissioner"
           />
         </Field>
         <Field>
@@ -40,7 +40,7 @@ export default function PersonnelDetails({ form, update, next, back }) {
           <input
             value={form.checked_by_name}
             onChange={e => update({ checked_by_name: e.target.value })}
-            placeholder="e.g. Frank Maloney"
+            placeholder="e.g. Commissioning Manager"
           />
         </Field>
         <Field>
@@ -58,7 +58,7 @@ export default function PersonnelDetails({ form, update, next, back }) {
         <input
           value={form.checked_by_signature}
           onChange={e => update({ checked_by_signature: e.target.value })}
-          placeholder="e.g. F Maloney"
+          placeholder="e.g. Commissioning Manager"
         />
       </Field>
 
@@ -68,7 +68,7 @@ export default function PersonnelDetails({ form, update, next, back }) {
           <input
             value={form.client_checked_by_name}
             onChange={e => update({ client_checked_by_name: e.target.value })}
-            placeholder="e.g. Andrew Pezzuto"
+            placeholder="e.g. Client Engineer"
           />
         </Field>
         <Field>
