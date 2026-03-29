@@ -9,17 +9,11 @@ import zipfile
 import os
 import logging
 import traceback
-import shutil
-
-from starlette.background import BackgroundTask
 
 from generators import circuit_breaker, generic
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-TMP_ROOT = Path(__file__).parent / ".tmp"
-TMP_ROOT.mkdir(exist_ok=True)
 
 app = FastAPI(title="ITC Generator API")
 
@@ -54,6 +48,8 @@ class EquipmentItem(BaseModel):
     equipment_type: str
     bay_name: str
     panel_numbers: list[str]
+    reference: str = ""
+    functional_location: str = ""
 
 
 class MultiITCRequest(BaseModel):
@@ -71,10 +67,6 @@ class MultiITCRequest(BaseModel):
     client_checked_by_name: str
     client_checked_by_position: str
     date: date
-
-
-def cleanup_dir(path: Path):
-    shutil.rmtree(path, ignore_errors=True)
 
 
 @app.get("/")
@@ -109,7 +101,7 @@ def generate_multi(req: MultiITCRequest):
     data = req.model_dump()
     data["date"] = datetime.combine(req.date, datetime.min.time())
 
-    tmp_dir = Path(tempfile.mkdtemp(dir=TMP_ROOT))
+    tmp_dir = Path(tempfile.mkdtemp())
     generated_files = []
 
     try:
@@ -118,7 +110,7 @@ def generate_multi(req: MultiITCRequest):
             if item.equipment_type not in EQUIPMENT_TYPES:
                 raise HTTPException(status_code=400, detail=f"Unknown equipment type: {item.equipment_type}")
 
-            item_data = {**data, "bay_name": item.bay_name}
+            item_data = {**data, "bay_name": item.bay_name, "reference": item.reference, "functional_location": item.functional_location}
 
             for panel_num in item.panel_numbers:
                 logger.info(f"Generating ITC for panel: {panel_num}")
@@ -142,7 +134,6 @@ def generate_multi(req: MultiITCRequest):
                 path=str(output_path),
                 filename=f"{safe_name}.xlsx",
                 media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                background=BackgroundTask(cleanup_dir, tmp_dir),
             )
 
         # Multiple files — zip with equipment type subfolders
@@ -158,13 +149,10 @@ def generate_multi(req: MultiITCRequest):
             path=str(zip_path),
             filename=f"{safe_project}_ITCs.zip",
             media_type="application/zip",
-            background=BackgroundTask(cleanup_dir, tmp_dir),
         )
 
     except HTTPException:
-        cleanup_dir(tmp_dir)
         raise
     except Exception as e:
         logger.error(f"Error generating ITC: {traceback.format_exc()}")
-        cleanup_dir(tmp_dir)
         raise HTTPException(status_code=500, detail=str(e))
